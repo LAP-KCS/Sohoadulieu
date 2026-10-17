@@ -118,19 +118,19 @@ test_report.md            lệnh đã chạy, số đạt/trượt, lỗi và gi
 
 ## 7. Tiêu chí nghiệm thu
 
-- [ ] Chỉ chấp nhận `.xlsx`; nguồn không bị ghi đè và kết quả lưu được vào tệp mới.
-- [ ] ICU `vi_VN` được xác minh bằng runtime và bộ vector, hoặc fallback được
+- [x] Chỉ chấp nhận `.xlsx`; nguồn không bị ghi đè và kết quả lưu được vào tệp mới.
+- [x] ICU `vi_VN` được xác minh bằng runtime và bộ vector, hoặc fallback được
   công bố cùng giới hạn; không tuyên bố chuẩn hoàn toàn khi chưa kiểm chứng.
-- [ ] Quy tắc chữ cái, dấu thanh, hoa/thường, khoảng trắng, tên gọi cuối, dấu câu,
+- [x] Quy tắc chữ cái, dấu thanh, hoa/thường, khoảng trắng, tên gọi cuối, dấu câu,
   trống và dữ liệu hỗn hợp có kiểm thử xác định.
-- [ ] Mọi hàng giữ quan hệ giữa các cột; header, giá trị gốc và thứ tự ổn định
+- [x] Mọi hàng giữ quan hệ giữa các cột; header, giá trị gốc và thứ tự ổn định
   được kiểm tra.
-- [ ] Công thức trong vùng sắp xếp chặn thao tác; tính năng rủi ro được phát hiện,
+- [x] Công thức trong vùng sắp xếp chặn thao tác; tính năng rủi ro được phát hiện,
   cảnh báo và chặn lưu khi có khả năng mất/thay đổi dữ liệu.
-- [ ] Giao diện cung cấp chọn tệp/worksheet/cột/vùng, tăng/giảm, kiểu tên, vị trí
+- [x] Giao diện cung cấp chọn tệp/worksheet/cột/vùng, tăng/giảm, kiểu tên, vị trí
   ô trống, xem trước, sắp xếp, lưu tệp mới và nhật ký.
-- [ ] Toàn bộ kiểm thử đã chạy đạt; `test_report.md` phản ánh đúng kết quả thực tế.
-- [ ] README mô tả cài đặt, chạy, dữ liệu mẫu và giới hạn.
+- [x] Toàn bộ kiểm thử đã chạy đạt; `test_report.md` phản ánh đúng kết quả thực tế.
+- [x] README mô tả cài đặt, chạy, dữ liệu mẫu và giới hạn.
 
 ## 8. Kết quả Giai đoạn 2
 
@@ -214,3 +214,29 @@ trực quan trên desktop vẫn còn. Giai đoạn 5 chưa bắt đầu.
 Giai đoạn 5 đạt cho toàn bộ kiểm thử tự động hiện có. Các giới hạn trên còn mở;
 không được diễn giải kết quả này là kiểm chứng ICU hoặc nghiệm thu với workbook
 thực.
+
+## 12. Kết quả Giai đoạn 6
+
+- Tạo `README.md` với cài đặt, chạy, quy tắc, giới hạn, kiểm thử và lệnh đóng gói.
+- Tạo `examples/create_sample_workbook.py`,
+  `examples/sample_vietnamese_names.xlsx` và
+  `examples/expected_vietnamese_names.csv`. Kiểm thử end-to-end xác nhận bản
+  sắp xếp khớp toàn bộ mã bản ghi/tên/địa danh trong CSV.
+- Tạo `requirements-build.txt` và build Windows one-file bằng PyInstaller 6.16.0.
+  Kết quả: `dist\VietnameseExcelSorter.exe`, 35,098,307 bytes.
+- Chạy smoke test EXE: cửa sổ “Sắp xếp tiếng Việt trong Excel” xuất hiện và
+  phản hồi; đóng các tiến trình sau kiểm tra. Giao diện Python trực tiếp cũng
+  được mở và đóng bình thường.
+- Build có cảnh báo một hidden import tùy chọn
+  `charset_normalizer.md__mypyc` không tìm thấy; EXE vẫn build và mở được.
+- Kiểm thử cuối: `python -m pytest -q` **40 passed, 0 failed**, 82 cảnh báo
+  deprecation từ `openpyxl`/Python 3.14, 0.75 giây.
+- `python -m compileall -q ui.py excel_processor.py unicode_utils.py
+  vietnamese_sort.py examples tests`: thành công.
+- `test_report.md` phản ánh các lệnh/kết quả thực tế. README, workbook mẫu và
+  kết quả kỳ vọng được đồng bộ lên repository GitHub công khai đã chỉ định.
+
+Các bước xây dựng/test đã hoàn thành trên workbook tổng hợp; chưa nhận được tệp
+Excel thực của người dùng. Giao diện đã smoke test nhưng chưa thao tác thủ công
+từng control; chưa xác minh PyICU `vi_VN`. Vì vậy đây là bản chạy được theo fallback
+đã mô tả, không phải tuyên bố đạt chuẩn ICU/toàn bộ workbook Excel nâng cao.

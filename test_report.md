@@ -6,17 +6,21 @@
 - Python: 3.14.0 (64-bit, Windows)
 - `openpyxl`: 3.1.2
 - `pytest`: 8.4.2
+- `PyInstaller`: 6.16.0
 - PyICU: chưa cài; locale ICU `vi_VN` chưa được xác minh
 
 ## Lệnh và kết quả
 
 | Lệnh | Kết quả |
 |---|---|
-| `python -m pytest -q` | **39 passed, 0 failed**, 77 cảnh báo deprecation, 0.66 giây |
-| `python -m compileall -q ui.py excel_processor.py unicode_utils.py vietnamese_sort.py tests` | Thành công |
+| `python -m pytest -q` | **40 passed, 0 failed**, 82 cảnh báo deprecation, 0.75 giây |
+| `python -m compileall -q ui.py excel_processor.py unicode_utils.py vietnamese_sort.py examples tests` | Thành công |
+| `python -m PyInstaller --clean --onefile --windowed --name VietnameseExcelSorter ui.py` | Build thành công; `dist\VietnameseExcelSorter.exe` (35,098,307 bytes) |
 
 Các cảnh báo pytest đến từ `openpyxl` 3.1.2 gọi `datetime.datetime.utcnow()`,
 API đã deprecate trong Python 3.14. Không có cảnh báo nào là lỗi kiểm thử.
+PyInstaller cũng báo không tìm thấy hidden import tùy chọn
+`charset_normalizer.md__mypyc`; build hoàn tất thành công.
 
 ## Phạm vi đã kiểm tra
 
@@ -29,14 +33,17 @@ API đã deprecate trong Python 3.14. Không có cảnh báo nào là lỗi ki�
   comment và hyperlink; workbook nguồn không bị thay đổi; không ghi đè tệp đích.
 - Chặn công thức trong các hàng di chuyển, ô gộp, bảng, và kiểu dữ liệu/tính năng
   không hỗ trợ đã liệt kê; yêu cầu xác nhận với công thức ngoài vùng.
-- UI helpers kiểm tra định dạng giá trị xem trước và thao tác lưu tệp không ghi đè.
+- UI helpers kiểm tra định dạng giá trị xem trước và thao tác lưu tệp không ghi đè;
+  giao diện Tkinter trực tiếp đã khởi chạy, hiện cửa sổ và phản hồi.
+- Workbook mẫu `.xlsx` được sắp xếp end-to-end và khớp CSV kỳ vọng theo mã bản ghi.
+- EXE đã được build và chạy smoke test; cửa sổ ứng dụng xuất hiện, sau đó được
+  đóng. UI chưa được thao tác thủ công hết mọi control.
 
 ## Giới hạn chưa kiểm chứng
 
-- Chưa có workbook thật do người dùng cung cấp; toàn bộ workbook tích hợp được
-  tạo trong test bằng `openpyxl`.
-- Chưa chạy kiểm thử tương tác cửa sổ tkinter trên desktop; UI helper/import được
-  kiểm thử tự động.
+- Chưa có workbook thật do người dùng cung cấp; workbook mẫu và workbook tích
+  hợp được tạo tự động.
+- EXE được smoke test khởi động, chưa đóng gói lên hệ thống phân phối có ký số.
 - Chưa kiểm chứng đối chiếu ICU `vi_VN`; kết quả hiện tại dùng fallback và không
   được khẳng định là tương đương ICU/chuẩn từ điển chính thức.
 - Chưa đóng gói `.exe`.
