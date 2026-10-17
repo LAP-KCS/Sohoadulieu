@@ -46,4 +46,3 @@ PyInstaller cũng báo không tìm thấy hidden import tùy chọn
 - EXE được smoke test khởi động, chưa đóng gói lên hệ thống phân phối có ký số.
 - Chưa kiểm chứng đối chiếu ICU `vi_VN`; kết quả hiện tại dùng fallback và không
   được khẳng định là tương đương ICU/chuẩn từ điển chính thức.
-- Chưa đóng gói `.exe`.
