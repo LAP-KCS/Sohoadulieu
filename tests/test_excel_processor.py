@@ -22,6 +22,7 @@ def _make_workbook(path: Path) -> None:
     worksheet.append(["Nguyễn Đạt", 3, "row-3"])
     worksheet.append(["Nguyễn An", 1, "row-2"])
     worksheet.append(["Nguyễn Đăng", 2, "row-4"])
+    worksheet.column_dimensions["B"].width = 26
     worksheet["A2"].font = Font(bold=True, color="FF0000")
     worksheet["C3"].comment = Comment("preserve me", "test")
     worksheet.row_dimensions[3].height = 30
@@ -63,6 +64,7 @@ def test_sorts_whole_rows_preserves_data_styles_comments_and_source(tmp_path: Pa
     assert sorted_sheet["A3"].font.color.rgb == "00FF0000"
     assert sorted_sheet["C2"].comment.text == "preserve me"
     assert sorted_sheet.row_dimensions[2].height == 30
+    assert sorted_sheet.column_dimensions["B"].width == 26
     sorted_book.close()
 
     original = load_workbook(source)
@@ -415,4 +417,126 @@ def test_nfc_and_nfd_values_sort_equal_without_rewriting_originals(tmp_path: Pat
     actual = [result["Sheet"].cell(row, 1).value for row in range(2, 4)]
     assert set(actual) == {"Nguye\u0302\u0303n", "Nguyễn"}
     assert actual[0] == "Nguye\u0302\u0303n"
+    result.close()
+
+
+def test_equal_sort_keys_keep_rows_stable_in_both_directions(tmp_path: Path) -> None:
+    source = tmp_path / "input.xlsx"
+    output = tmp_path / "sorted.xlsx"
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.append(["name", "record"])
+    worksheet.append(["AN", "first"])
+    worksheet.append(["Án", "accent"])
+    worksheet.append(["An", "second"])
+    worksheet.append(["an", "third"])
+    workbook.save(source)
+    workbook.close()
+
+    sort_xlsx(
+        source,
+        output,
+        worksheet_name="Sheet",
+        sort_column=1,
+        first_data_row=2,
+        backend="fallback",
+    )
+    result = load_workbook(output, read_only=True)
+    rows = [
+        tuple(result["Sheet"].cell(row, column).value for column in (1, 2))
+        for row in range(2, 6)
+    ]
+    assert rows == [
+        ("AN", "first"),
+        ("An", "second"),
+        ("an", "third"),
+        ("Án", "accent"),
+    ]
+    result.close()
+
+    descending_output = tmp_path / "descending.xlsx"
+    sort_xlsx(
+        source,
+        descending_output,
+        worksheet_name="Sheet",
+        sort_column=1,
+        first_data_row=2,
+        descending=True,
+        backend="fallback",
+    )
+    result = load_workbook(descending_output, read_only=True)
+    rows_descending = [
+        tuple(result["Sheet"].cell(row, column).value for column in (1, 2))
+        for row in range(2, 6)
+    ]
+    assert rows_descending == [
+        ("Án", "accent"),
+        ("AN", "first"),
+        ("An", "second"),
+        ("an", "third"),
+    ]
+    result.close()
+
+
+def test_selected_data_range_keeps_header_and_footer_in_place(tmp_path: Path) -> None:
+    source = tmp_path / "input.xlsx"
+    output = tmp_path / "sorted.xlsx"
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.append(["name", "record"])
+    worksheet.append(["B", "middle-1"])
+    worksheet.append(["A", "middle-2"])
+    worksheet.append(["footer", "do-not-move"])
+    workbook.save(source)
+    workbook.close()
+
+    sort_xlsx(
+        source,
+        output,
+        worksheet_name="Sheet",
+        sort_column=1,
+        first_data_row=2,
+        last_data_row=3,
+        header_row=1,
+        backend="fallback",
+    )
+    result = load_workbook(output, read_only=True)
+    worksheet = result["Sheet"]
+    assert [worksheet.cell(1, column).value for column in (1, 2)] == ["name", "record"]
+    assert [worksheet.cell(row, 1).value for row in (2, 3)] == ["A", "B"]
+    assert [worksheet.cell(row, 2).value for row in (2, 3)] == ["middle-2", "middle-1"]
+    assert [worksheet.cell(4, column).value for column in (1, 2)] == [
+        "footer",
+        "do-not-move",
+    ]
+    result.close()
+
+
+def test_hyperlink_moves_with_its_row(tmp_path: Path) -> None:
+    source = tmp_path / "input.xlsx"
+    output = tmp_path / "sorted.xlsx"
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.append(["name", "link"])
+    worksheet.append(["B", "second"])
+    worksheet["B2"].hyperlink = "https://example.com/b"
+    worksheet.append(["A", "first"])
+    worksheet["B3"].hyperlink = "https://example.com/a"
+    workbook.save(source)
+    workbook.close()
+
+    sort_xlsx(
+        source,
+        output,
+        worksheet_name="Sheet",
+        sort_column=1,
+        first_data_row=2,
+        backend="fallback",
+    )
+    result = load_workbook(output)
+    worksheet = result["Sheet"]
+    assert worksheet["B2"].value == "first"
+    assert worksheet["B2"].hyperlink.target == "https://example.com/a"
+    assert worksheet["B3"].value == "second"
+    assert worksheet["B3"].hyperlink.target == "https://example.com/b"
     result.close()
