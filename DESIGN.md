@@ -198,3 +198,19 @@ thực do người dùng cung cấp. Giao diện sẽ nối xác nhận cảnh b
 
 Phần mã Giai đoạn 4 đã được xây dựng và các kiểm thử tự động đạt; nghiệm thu
 trực quan trên desktop vẫn còn. Giai đoạn 5 chưa bắt đầu.
+
+## 11. Kết quả Giai đoạn 5
+
+- Bổ sung kiểm thử tích hợp cho khóa bằng nhau theo cả hai chiều, giữ hàng tiêu
+  đề/footer ngoài vùng và bảo toàn hyperlink cùng hàng.
+- Chạy `python -m pytest -q`: **39 passed, 0 failed**, 77 cảnh báo deprecation,
+  0.66 giây.
+- Chạy `python -m compileall -q ui.py excel_processor.py unicode_utils.py
+  vietnamese_sort.py tests`: thành công.
+- Kết quả có thể tái lập và phạm vi/giới hạn được ghi tại `test_report.md`.
+- Chưa có tệp Excel thực từ người dùng để kiểm thử; UI chưa được kiểm thử tương
+  tác trên desktop; PyICU/locale `vi_VN` chưa khả dụng để đối chiếu.
+
+Giai đoạn 5 đạt cho toàn bộ kiểm thử tự động hiện có. Các giới hạn trên còn mở;
+không được diễn giải kết quả này là kiểm chứng ICU hoặc nghiệm thu với workbook
+thực.
